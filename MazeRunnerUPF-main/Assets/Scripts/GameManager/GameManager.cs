@@ -1,14 +1,15 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.Serialization;
+using TMPro; 
 
 public class GameManager : MonoBehaviour
 {
-    private IGameStatus _gameStatus;
-    [SerializeField] private GameObject winPanel;
-    [SerializeField] private GameObject gameOverPanel;
+    [SerializeField] private GameObject gameWinPanel; 
+    [SerializeField] private GameObject gameOverPanel; 
+    [SerializeField] private GameObject lifeCanvas;
     [SerializeField] private GameObject level;
-    [SerializeField] private GameObject heartsCanvas;
+    private IGameStatus _gameStatus;
+
     private void Awake()
     {
         ServiceLocator.Reset();
@@ -17,62 +18,61 @@ public class GameManager : MonoBehaviour
         ServiceLocator.RegisterService(_gameStatus);
         ServiceLocator.RegisterService<ICheckPointSystem>(new CheckPointSystem());
     }
-    
+
     void Start()
     {
         _gameStatus.OnWinGame += HandleWinGame;
         _gameStatus.OnGameOver += HandleGameOver;
         gameOverPanel.SetActive(false);
-        winPanel.SetActive(false);
-    }
-
-    private void Update()
-    {
-        if (gameOverPanel.activeSelf)
-        {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Debug.Log("Reiniciando game");
-                RestartGame();
-            }
-        }
+        gameWinPanel.SetActive(false);
     }
 
     private void HandleWinGame()
     {
-        SetWinScreen();
-    }
-
-    private void SetWinScreen()
-    {
-        heartsCanvas.SetActive(false);
-        level.SetActive(false);
-        gameOverPanel.SetActive(true);
-        Time.timeScale = 0f;
-        
-        Update();
-    }
-
-    private void HandleGameOver()
-    {
-        SetGameOver();
-    }
-
-    private void SetGameOver()
-    {
-        heartsCanvas.SetActive(false);
-        level.SetActive(false);
-        gameOverPanel.SetActive(true);
-        Time.timeScale = 0f;
-        
-        Update();
-    }
-
-    private void RestartGame()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(0);
-        
+        SetGameWinState();
     }
     
+    private void HandleGameOver()
+    {
+        SetGameOverState();
+    }
+
+    //Aperta R para reiniciar o jogo
+    private void Update()
+    {
+        if (gameOverPanel.activeSelf || gameWinPanel.activeSelf)
+        {
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                RestartGame();   
+            }
+        }
+    }
+
+
+    private void SetGameOverState()
+    {
+        lifeCanvas.SetActive(false); // Oculta a tela de vidas
+        level.SetActive(false); // Pausa ou oculta o nível
+        gameOverPanel.SetActive(true); // Exibe a tela de Game Over
+        Time.timeScale = 0f; // Pausa o jogo
+
+        Update();
+    }
+    
+    private void SetGameWinState()
+    {
+        lifeCanvas.SetActive(false); // Oculta a tela de vidas
+        level.SetActive(false); // Pausa ou oculta o nível
+        gameWinPanel.SetActive(true); // Exibe a tela de Game Over
+        Time.timeScale = 0f; // Pausa o jogo
+
+        Update();
+    }
+
+    private void RestartGame(){
+        Debug.Log("Reiniciando o jogo...");
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0);
+    }
 }
